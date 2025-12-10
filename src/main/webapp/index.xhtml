@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://xmlns.jcp.org/jsf/html">
+
+<h:head>
+    <title>Area Checker - Start</title>
+    <meta charset="UTF-8"/>
+    <h:outputStylesheet name="css/common.css"/>
+    <h:outputStylesheet name="css/index.css"/>
+</h:head>
+
+<h:body>
+    <div class="container">
+        <div class="header">
+            <h1>Лабораторная работа по JavaServer Faces</h1>
+            <p><strong>ФИО:</strong> Сенькина Мария Дмитриевна</p>
+            <p><strong>Группа:</strong> P3222</p>
+            <p><strong>Вариант:</strong> 75011</p>
+        </div>
+
+        <div class="clock">
+            <h3>Текущее время:</h3>
+            <div id="clock" class="clock-display"></div>
+        </div>
+
+        <h:link outcome="main" value="Перейти к проверке области" styleClass="nav-link"/>
+    </div>
+
+    <h:outputScript name="js/clock.js" target="body"/>
+</h:body>
+</html>

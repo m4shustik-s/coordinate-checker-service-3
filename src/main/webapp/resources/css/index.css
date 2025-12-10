@@ -1,0 +1,26 @@
+/* Стили только для главной страницы */
+
+.clock {
+    background: #e0e0e0;
+    padding: 15px;
+    margin: 20px 0;
+    border-radius: 5px;
+    text-align: center;
+}
+
+.clock h3 {
+    color: #2c3e50;
+    margin-bottom: 10px;
+    font-size: 18px;
+}
+
+.clock-display {
+    font-size: 18px;
+    font-weight: bold;
+    color: #2c3e50;
+    padding: 10px;
+    background: white;
+    border-radius: 5px;
+    display: inline-block;
+    min-width: 300px;
+}

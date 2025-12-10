@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://xmlns.jcp.org/jsf/html"
+      xmlns:f="http://xmlns.jcp.org/jsf/core">
+
+<h:head>
+    <title>Area Checker</title>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+
+    <h:outputStylesheet name="css/common.css"/>
+    <h:outputStylesheet name="css/main.css"/>
+</h:head>
+
+<h:body>
+    <div class="container">
+        <h1>Проверка попадания точки</h1>
+
+        <h:form id="mainForm" prependId="true">
+            <div class="form-block">
+                <h3>Координата X:</h3>
+                <h:selectOneMenu id="x" value="#{areaCheckBean.x}" styleClass="form-control">
+                    <f:selectItem itemLabel="-4" itemValue="-4"/>
+                    <f:selectItem itemLabel="-3" itemValue="-3"/>
+                    <f:selectItem itemLabel="-2" itemValue="-2"/>
+                    <f:selectItem itemLabel="-1" itemValue="-1"/>
+                    <f:selectItem itemLabel="0" itemValue="0"/>
+                    <f:selectItem itemLabel="1" itemValue="1"/>
+                    <f:selectItem itemLabel="2" itemValue="2"/>
+                    <f:selectItem itemLabel="3" itemValue="3"/>
+                    <f:selectItem itemLabel="4" itemValue="4"/>
+                </h:selectOneMenu>
+
+                <h3>Координата Y:</h3>
+                <h:inputText id="y" value="#{areaCheckBean.y}" styleClass="form-control"/>
+
+                <h3>Радиус R:</h3>
+                <h:inputText id="r" value="#{areaCheckBean.r}" styleClass="form-control"/>
+
+                <div class="form-submit-container">
+                    <h:commandButton value="Проверить" action="#{areaCheckBean.checkPoint}"
+                                     styleClass="submit-btn"
+                                     onclick="return validateFormBeforeSubmit()"/>
+                </div>
+            </div>
+        </h:form>
+
+        <div class="graph">
+            <div id="graphContainer"></div>
+        </div>
+
+        <div class="results-section" id="results-container">
+            <h3>История проверок</h3>
+
+            <h:dataTable value="#{resultsBean.results}" var="result"
+                         styleClass="results-table"
+                         rendered="#{not empty resultsBean.results}">
+
+                <h:column>
+                    <f:facet name="header">X</f:facet>
+                    <span class="result-data" data-type="x">#{result.x}</span>
+                </h:column>
+
+                <h:column>
+                    <f:facet name="header">Y</f:facet>
+                    <span class="result-data" data-type="y">#{result.y}</span>
+                </h:column>
+
+                <h:column>
+                    <f:facet name="header">R</f:facet>
+                    <span class="result-data" data-type="r">#{result.r}</span>
+                </h:column>
+
+                <h:column>
+                    <f:facet name="header">Попадание</f:facet>
+                    <span class="result-data #{result.hit ? 'hit' : 'miss'}"
+                          data-type="hit" data-hit="#{result.hit}">
+                        #{result.hit ? 'Попала' : 'Не попала'}
+                    </span>
+                </h:column>
+
+                <h:column>
+                    <f:facet name="header">Время</f:facet>
+                    #{result.checkTime}
+                </h:column>
+            </h:dataTable>
+
+            <h:outputText value="Нет результатов"
+                          rendered="#{empty resultsBean.results}"
+                          style="color: gray; font-style: italic;"/>
+
+            <div style="text-align: center; margin-top: 15px;">
+                <h:commandButton value="Очистить историю"
+                                 action="#{resultsBean.clearResults()}"
+                                 styleClass="clear-btn"
+                                 onclick="return confirm('Вы уверены, что хотите очистить историю?')"/>
+            </div>
+        </div>
+
+        <div class="text-center mt-20">
+            <h:link outcome="index" value="Вернуться на главную" styleClass="nav-link"/>
+        </div>
+
+        <div id="loadingIndicator" class="loading-overlay">
+            <div class="loading-message">Проверка точки...</div>
+        </div>
+    </div>
+
+    <h:outputScript name="js/graph-renderer.js"/>
+    <h:outputScript name="js/validation.js"/>
+    <h:outputScript name="js/graph-interaction.js"/>
+</h:body>
+</html>
