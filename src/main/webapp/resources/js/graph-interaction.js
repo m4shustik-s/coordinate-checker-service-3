@@ -5,6 +5,23 @@ function clearTempPoints() {
     }
 }
 
+function clearAllGraphPoints() {
+    console.log('Очищаю точки с графика...');
+    const svg = document.getElementById('areaGraph');
+    if (svg) {
+        // удаляем ВСЕ точки с графика
+        const allPoints = svg.querySelectorAll('circle');
+        allPoints.forEach(point => {
+            console.log('Удаляю точку:', point.getAttribute('data-type'));
+            point.remove();
+        });
+        console.log('Удалено точек: ' + allPoints.length);
+    } else {
+        console.error('График не найден для очистки');
+    }
+}
+
+
 function validateFormBeforeSubmit() {
     console.log('проверка перед отправкой');
     if (validateForm()) {

@@ -5,73 +5,69 @@ import jakarta.enterprise.context.SessionScoped;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import java.io.Serializable;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 @Named
 @SessionScoped
 public class AreaCheckBean implements Serializable {
-    private double x = 0;
-    private double y = 0;
-    private double r = 2;
+    private Double x = 0.0;
+    private Double y = 0.0;
+    private Double r = 2.0;
 
     @Inject
     private ResultsBean resultsBean;
 
     public void checkPoint() {
         System.out.println("=== ПРОВЕРКА ТОЧКИ ===");
-        System.out.println("X = " + x);
-        System.out.println("Y = " + y);
-        System.out.println("R = " + r);
+        System.out.println("Серверное время: " + java.time.LocalDateTime.now());
 
-        long startTime = System.nanoTime();
         boolean hit = checkHit(x, y, r);
-        long executionTime = System.nanoTime() - startTime;
+        Result result = new Result(x, y, r, hit);
 
-        System.out.println("Результат: " + (hit ? "ПОПАЛА" : "НЕ ПОПАЛА"));
+        System.out.println("Время в результате: " + result.getCheckTime());
 
-        // Временно работаем без БД
-        Result result = new Result(x, y, r, hit, executionTime);
-
-        // Просто добавляем в список
         if (resultsBean != null) {
             resultsBean.addResult(result);
-            System.out.println("✅ Результат добавлен в таблицу");
-        } else {
-            System.out.println("❌ ResultsBean не инициализирован!");
         }
     }
 
     private boolean checkHit(double x, double y, double r) {
-        // 1. Четверть круга в левом верхнем квадранте радиусом R/2
+        System.out.println("Проверяем точку (" + x + ", " + y + ") при R=" + r);
+
         boolean inQuarterCircle = (x <= 0 && y >= 0) &&
                 (x * x + y * y <= (r/2) * (r/2));
+        System.out.println("В четверти круга: " + inQuarterCircle);
 
-        // 2. Квадрат в правом верхнем квадранте стороной R
         boolean inSquare = (x >= 0 && x <= r) &&
                 (y >= 0 && y <= r);
+        System.out.println("В квадрате: " + inSquare);
 
-        // 3. Треугольник в правом нижнем квадранте: R по X и R/2 по Y
         boolean inTriangle = (x >= 0 && y <= 0) &&
                 (y >= -0.5 * x) &&
                 (x <= r) && (y >= -r/2);
+        System.out.println("В треугольнике: " + inTriangle);
 
-        return inQuarterCircle || inSquare || inTriangle;
+        boolean result = inQuarterCircle || inSquare || inTriangle;
+        System.out.println("Итоговый результат: " + result);
+        return result;
     }
 
     // Геттеры и сеттеры
-    public double getX() { return x; }
-    public void setX(double x) {
+    public Double getX() { return x; }
+    public void setX(Double x) {
         this.x = x;
         System.out.println("X установлен: " + x);
     }
 
-    public double getY() { return y; }
-    public void setY(double y) {
+    public Double getY() { return y; }
+    public void setY(Double y) {
         this.y = y;
         System.out.println("Y установлен: " + y);
     }
 
-    public double getR() { return r; }
-    public void setR(double r) {
+    public Double getR() { return r; }
+    public void setR(Double r) {
         this.r = r;
         System.out.println("R установлен: " + r);
     }

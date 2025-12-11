@@ -75,14 +75,17 @@
                     <f:facet name="header">Попадание</f:facet>
                     <span class="result-data #{result.hit ? 'hit' : 'miss'}"
                           data-type="hit" data-hit="#{result.hit}">
-                        #{result.hit ? 'Попала' : 'Не попала'}
-                    </span>
+                #{result.hit ? 'Попала' : 'Не попала'}
+            </span>
                 </h:column>
 
                 <h:column>
-                    <f:facet name="header">Время</f:facet>
-                    #{result.checkTime}
+                    <f:facet name="header">Время проверки</f:facet>
+                    <span class="result-data" data-type="time">
+                #{result.checkTime}
+            </span>
                 </h:column>
+
             </h:dataTable>
 
             <h:outputText value="Нет результатов"
@@ -91,9 +94,20 @@
 
             <div style="text-align: center; margin-top: 15px;">
                 <h:commandButton value="Очистить историю"
-                                 action="#{resultsBean.clearResults()}"
-                                 styleClass="clear-btn"
-                                 onclick="return confirm('Вы уверены, что хотите очистить историю?')"/>
+                                 styleClass="clear-btn">
+                    <f:ajax execute="@this"
+                            render="results-container"
+                            listener="#{resultsBean.clearResults()}"
+                            onevent="function(data) {
+                        if(data.status == 'success') {
+                            console.log('История очищена, удаляю точки с графика...');
+                            clearAllGraphPoints();
+                        }
+                    }"
+                            onclick="if(!confirm('Вы уверены, что хотите очистить всю историю проверок?')) {
+                        return false;
+                    }"/>
+                </h:commandButton>
             </div>
         </div>
 

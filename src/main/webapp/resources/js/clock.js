@@ -14,5 +14,5 @@ function updateClock() {
 
 document.addEventListener('DOMContentLoaded', function() {
     updateClock();
-    setInterval(updateClock, 8000);
+    setInterval(updateClock, 1000);
 });

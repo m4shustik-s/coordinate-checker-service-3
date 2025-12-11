@@ -10,10 +10,7 @@ public class Result implements Serializable {
     private double r;
     private boolean hit;
     private LocalDateTime checkTime;
-
-    public Result() {}
-
-    public Result(double x, double y, double r, boolean hit, long executionTime) {
+    public Result(double x, double y, double r, boolean hit) {
         this.x = x;
         this.y = y;
         this.r = r;
@@ -21,14 +18,14 @@ public class Result implements Serializable {
         this.checkTime = LocalDateTime.now();
     }
 
-    // Геттеры
     public double getX() { return x; }
     public double getY() { return y; }
     public double getR() { return r; }
     public boolean isHit() { return hit; }
 
     public String getCheckTime() {
-        return checkTime.format(DateTimeFormatter.ofPattern("HH:mm:ss"));
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm:ss");
+        return checkTime.format(formatter);
     }
 
     public String getHitText() {
