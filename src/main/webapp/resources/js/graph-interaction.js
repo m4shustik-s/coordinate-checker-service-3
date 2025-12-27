@@ -1,112 +1,28 @@
-function clearTempPoints() {
-    const svg = document.getElementById('areaGraph');
-    if (svg) {
-        svg.querySelectorAll('.temp-point').forEach(p => p.remove());
-    }
-}
-
-function clearAllGraphPoints() {
-    console.log('Очищаю точки с графика...');
-    const svg = document.getElementById('areaGraph');
-    if (svg) {
-        // удаляем ВСЕ точки с графика
-        const allPoints = svg.querySelectorAll('circle');
-        allPoints.forEach(point => {
-            console.log('Удаляю точку:', point.getAttribute('data-type'));
-            point.remove();
-        });
-        console.log('Удалено точек: ' + allPoints.length);
-    } else {
-        console.error('График не найден для очистки');
-    }
-}
-
-
-function validateFormBeforeSubmit() {
-    console.log('проверка перед отправкой');
-    if (validateForm()) {
-        showLoadingIndicator();
-        return true;
-    }
-    return false;
-}
-
-function showLoadingIndicator() {
-    const indicator = document.getElementById('loadingIndicator');
-    if (indicator) {
-        indicator.style.display = 'flex';
-        setTimeout(() => indicator.style.display = 'none', 2000);
-    }
-}
-
-function displayHistoryPoints() {
-    console.log('загрузка истории');
-    const svg = document.getElementById('areaGraph');
-    if (!svg) {
-        setTimeout(displayHistoryPoints, 100);
-        return;
-    }
-
-    const table = document.querySelector('.results-table tbody');
-    if (!table) {
-        console.log('таблица результатов не найдена');
-        return;
-    }
-
-    table.querySelectorAll('tr').forEach((row, index) => {
-        const cells = row.querySelectorAll('td');
-        if (cells.length >= 4) {
-            try {
-                const x = parseFloat(cells[0].textContent.trim());
-                const y = parseFloat(cells[1].textContent.trim());
-                const r = parseFloat(cells[2].textContent.trim());
-
-                // правильное определение попадания
-                const resultCell = cells[3];
-                let hit = false;
-
-                // проверяем несколько вариантов
-                const resultText = resultCell.textContent.trim().toLowerCase();
-                if (resultText.includes('попала') ||
-                    resultText.includes('hit') ||
-                    resultText.includes('да') ||
-                    resultText === 'true' ||
-                    resultCell.classList.contains('hit')) {
-                    hit = true;
-                } else if (resultText.includes('не попала') ||
-                          resultText.includes('miss') ||
-                          resultText.includes('нет') ||
-                          resultText === 'false' ||
-                          resultCell.classList.contains('miss')) {
-                    hit = false;
-                }
-
-                console.log(`точка ${index+1}: x=${x}, y=${y}, r=${r}, попадание=${hit}`);
-
-                if (!isNaN(x) && !isNaN(y) && !isNaN(r)) {
-                    addPointToGraph(x, y, r, 'result', hit);
-                }
-            } catch (e) {
-                console.error(`ошибка парсинга строки ${index+1}:`, e);
-            }
-        }
-    });
-}
 
 function onSvgClick(evt) {
-    console.log('клик по графику');
-    const svg = document.getElementById('areaGraph');
-    if (!svg) return;
+    console.log('Клик по графику (AJAX)');
 
-    const rInput = document.getElementById('mainForm:r');
+    // Если идет AJAX запрос, игнорируем клик
+    if (window.ajaxInProgress) {
+        console.log('Идет AJAX запрос, игнорируем клик');
+        return;
+    }
+
+    const svg = document.getElementById('areaGraph');
+    if (!svg) {
+        console.error('График не найден!');
+        return;
+    }
+
+    const rInput = document.getElementById('r');
     if (!rInput || !rInput.value) {
-        alert('введите r сначала');
+        alert('Сначала введите R');
         return;
     }
 
     const r = parseFloat(rInput.value.replace(',', '.'));
-    if (r <= 0) {
-        alert('r > 0');
+    if (isNaN(r) || r <= 0) {
+        alert('R должно быть числом больше 0');
         return;
     }
 
@@ -114,46 +30,107 @@ function onSvgClick(evt) {
     const x = (evt.clientX - rect.left - 200) / (100 / r);
     const y = (200 - (evt.clientY - rect.top)) / (100 / r);
 
-    // установка x
-    const xSelect = document.getElementById('mainForm:x');
+    const hit = checkHitInJS(x, y, r);
+    console.log(`Точка (${x.toFixed(2)}, ${y.toFixed(2)}) при R=${r}: ${hit ? 'ПОПАЛА' : 'НЕ ПОПАЛА'}`);
+
+    // Установи X
+    const xSelect = document.getElementById('x');
     if (xSelect) {
-        let closest = '-4';
+        let closestValue = '-4';
         let minDiff = Math.abs(-4 - x);
-        Array.from(xSelect.options).forEach(opt => {
-            const diff = Math.abs(parseFloat(opt.value) - x);
+
+        Array.from(xSelect.options).forEach(option => {
+            const optValue = parseFloat(option.value);
+            const diff = Math.abs(optValue - x);
             if (diff < minDiff) {
                 minDiff = diff;
-                closest = opt.value;
+                closestValue = option.value;
             }
         });
-        xSelect.value = closest;
+
+        xSelect.value = closestValue;
+        console.log('Выбрано X:', closestValue);
     }
 
-    // установка y
-    const yInput = document.getElementById('mainForm:y');
+    // Установи Y
+    const yInput = document.getElementById('y');
     if (yInput) {
         yInput.value = y.toFixed(4);
-        validateYField();
+        if (typeof validateYField === 'function') {
+            validateYField();
+        }
     }
 
-    // временная точка
+    // Рисуем временную точку
     clearTempPoints();
-    addPointToGraph(x, y, r, 'temp', false);
+    addPointToGraph(x, y, r, 'temp', hit);
 
-    // автоотправка
+    // Автоотправка через AJAX через 1 секунду
     setTimeout(() => {
-        if (validateForm()) {
-            const btn = document.querySelector('.submit-btn');
-            if (btn) {
-                showLoadingIndicator();
-                btn.click();
+        if (typeof validateFormBeforeSubmit === 'function' && validateFormBeforeSubmit()) {
+            console.log('Отправка формы после клика по графику');
+
+            // Находим и кликаем по кнопке отправки
+            const submitBtn = document.querySelector('.submit-btn');
+            if (submitBtn) {
+                submitBtn.click();
             } else {
+                console.error('Кнопка отправки не найдена');
                 clearTempPoints();
             }
         } else {
+            console.log('Валидация не пройдена');
             clearTempPoints();
         }
-    }, 1500);
+    }, 1000);
+}
+
+// Остальные функции остаются без изменений
+function updateRLabels() {
+    const rInput = document.getElementById('r');
+    if (!rInput || !rInput.value) return;
+
+    const r = parseFloat(rInput.value.replace(',', '.'));
+    if (isNaN(r)) return;
+
+    // Обновляем подписи на графике
+    const labels = {
+        'labelMinusR': `-${r}`,
+        'labelR': `${r}`,
+        'labelTopR': `${r}`,
+        'labelBottomMinusR': `-${r}`,
+        'labelMinusR2': `-${r/2}`,
+        'labelR2': `${r/2}`,
+        'labelTopR2': `${r/2}`,
+        'labelBottomMinusR2': `-${r/2}`
+    };
+
+    for (const [id, text] of Object.entries(labels)) {
+        const label = document.getElementById(id);
+        if (label) {
+            label.textContent = text;
+        }
+    }
+}
+
+function checkHitInJS(x, y, r) {
+    // 1. Четверть круга: x ≤ 0, y ≥ 0, x² + y² ≤ (R/2)²
+    const inQuarterCircle = (x <= 0 && y >= 0) &&
+                           (x * x + y * y <= (r/2) * (r/2));
+
+    // 2. Квадрат: 0 ≤ x ≤ R, 0 ≤ y ≤ R
+    const inSquare = (x >= 0 && x <= r) &&
+                    (y >= 0 && y <= r);
+
+    // 3. Треугольник: 0 ≤ x ≤ R, -R/2 ≤ y ≤ 0, y ≥ -x/2
+    const inTriangle = (x >= 0 && y <= 0) &&
+                      (y >= -0.5 * x) &&
+                      (x <= r) && (y >= -r/2);
+
+    const result = inQuarterCircle || inSquare || inTriangle;
+
+    console.log(`Проверка JS: круг=${inQuarterCircle}, квадрат=${inSquare}, треугольник=${inTriangle}, итог=${result}`);
+    return result;
 }
 
 function addPointToGraph(x, y, r, type, hit) {
@@ -172,39 +149,44 @@ function addPointToGraph(x, y, r, type, hit) {
     point.setAttribute('data-y', y);
     point.setAttribute('data-r', r);
     point.setAttribute('data-type', type);
+    point.setAttribute('data-hit', hit);
 
     if (type === 'temp') {
         point.setAttribute('class', 'temp-point');
-        point.setAttribute('fill', 'orange');
+        if (hit) {
+            point.setAttribute('fill', '#27ae60');
+        } else {
+            point.setAttribute('fill', '#e74c3c');
+        }
         point.setAttribute('stroke', 'black');
     } else if (type === 'result') {
         if (hit) {
             point.setAttribute('class', 'result-point hit-point');
-            point.setAttribute('fill', '#27ae60'); // зеленый
+            point.setAttribute('fill', '#27ae60');
         } else {
             point.setAttribute('class', 'result-point miss-point');
-            point.setAttribute('fill', '#e74c3c'); // красный
+            point.setAttribute('fill', '#e74c3c');
         }
         point.setAttribute('stroke', 'black');
         point.setAttribute('stroke-width', '1');
-        point.setAttribute('data-hit', hit);
     }
 
     svg.appendChild(point);
-    console.log(`нарисована ${type} точка: (${x.toFixed(2)}, ${y.toFixed(2)}), попадание=${hit}`);
+    console.log(`Нарисована ${type} точка: (${x.toFixed(2)}, ${y.toFixed(2)}), попадание=${hit}, цвет=${hit ? 'зеленый' : 'красный'}`);
 }
 
-// инициализация
-function initializePage() {
-    console.log('инициализация страницы');
-    createGraph();
-    initializeFormValidation();
-    setTimeout(displayHistoryPoints, 300);
-
+function clearTempPoints() {
     const svg = document.getElementById('areaGraph');
     if (svg) {
-        svg.addEventListener('click', onSvgClick);
+        svg.querySelectorAll('.temp-point').forEach(p => p.remove());
     }
 }
 
-document.addEventListener('DOMContentLoaded', initializePage);
+// Экспорт функций
+if (typeof window !== 'undefined') {
+    window.onSvgClick = onSvgClick;
+    window.updateRLabels = updateRLabels;
+    window.checkHitInJS = checkHitInJS;
+    window.addPointToGraph = addPointToGraph;
+    window.clearTempPoints = clearTempPoints;
+}

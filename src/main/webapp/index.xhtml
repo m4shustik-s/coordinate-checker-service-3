@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml"
-      xmlns:h="http://xmlns.jcp.org/jsf/html">
+      xmlns:h="http://xmlns.jcp.org/jsf/html"
+      xmlns:f="http://xmlns.jcp.org/jsf/core">
+
 
 <h:head>
     <title>Area Checker - Start</title>
@@ -19,13 +21,20 @@
         </div>
 
         <div class="clock">
-            <h3>Текущее время:</h3>
-            <div id="clock" class="clock-display"></div>
+            <h3>Текущее время на сервере:</h3>
+            <h:form id="clockForm">
+                <div>
+                    <h:outputText id="time" value="#{clock.time}"/>
+                </div>
+
+                <h:commandButton id="refreshBtn" style="display: none;">
+                    <f:ajax render="time"/>
+                </h:commandButton>
+            </h:form>
         </div>
 
         <h:link outcome="main" value="Перейти к проверке области" styleClass="nav-link"/>
     </div>
 
-    <h:outputScript name="js/clock.js" target="body"/>
 </h:body>
 </html>

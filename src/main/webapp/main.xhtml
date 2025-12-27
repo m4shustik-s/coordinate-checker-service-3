@@ -8,18 +8,24 @@
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 
-    <h:outputStylesheet name="css/common.css"/>
-    <h:outputStylesheet name="css/main.css"/>
+    <h:outputStylesheet library="css" name="common.css"/>
+    <h:outputStylesheet library="css" name="main.css"/>
+
+    <h:outputScript library="js" name="graph-renderer.js"/>
+    <h:outputScript library="js" name="validation.js"/>
+    <h:outputScript library="js" name="graph-interaction.js"/>
+    <h:outputScript library="js" name="ajax-handler.js"/>
 </h:head>
 
 <h:body>
     <div class="container">
         <h1>Проверка попадания точки</h1>
 
-        <h:form id="mainForm" prependId="true">
+        <!-- Основная форма для проверки точки -->
+        <h:form id="mainForm" prependId="false">
             <div class="form-block">
                 <h3>Координата X:</h3>
-                <h:selectOneMenu id="x" value="#{areaCheckBean.x}" styleClass="form-control">
+                <h:selectOneMenu id="x" value="#{areaCheck.x}">
                     <f:selectItem itemLabel="-4" itemValue="-4"/>
                     <f:selectItem itemLabel="-3" itemValue="-3"/>
                     <f:selectItem itemLabel="-2" itemValue="-2"/>
@@ -32,96 +38,116 @@
                 </h:selectOneMenu>
 
                 <h3>Координата Y:</h3>
-                <h:inputText id="y" value="#{areaCheckBean.y}" styleClass="form-control"/>
+                <h:inputText id="y" value="#{areaCheck.y}" styleClass="form-control"/>
 
                 <h3>Радиус R:</h3>
-                <h:inputText id="r" value="#{areaCheckBean.r}" styleClass="form-control"/>
+                <h:inputText id="r" value="#{areaCheck.r}" styleClass="form-control">
+                </h:inputText>
 
-                <div class="form-submit-container">
-                    <h:commandButton value="Проверить" action="#{areaCheckBean.checkPoint}"
-                                     styleClass="submit-btn"
-                                     onclick="return validateFormBeforeSubmit()"/>
+            </div>
+
+            <div class="form-submit-container">
+                <h:commandButton value="Проверить"
+                                 onclick="return validateFormBeforeSubmit();"
+                                 action="#{areaCheck.checkPoint}"
+                                 styleClass="submit-btn">
+                >
+                    <f:ajax execute="@form"
+                            render=":resultsPanel :graphContainer :clearForm:clearBtn"
+                            onevent="handleAjaxEvent"/>
+                </h:commandButton>
+            </div>
+
+        <!-- График -->
+            <div class="graph-section">
+                <h3>График области</h3>
+                <div id="graphContainer"></div>
+            </div>
+
+        <!-- Таблица результатов - ОБЕРНИТЕ В h:panelGroup -->
+            <h:panelGroup id="resultsPanel">
+                <div class="results-section">
+                    <h3>История проверок</h3>
+
+                    <h:dataTable id="resultsTable" value="#{resultsBean.results}" var="result"
+                                 styleClass="results-table"
+                                 rendered="#{not empty resultsBean.results}">
+                        <h:column>
+                            <f:facet name="header">X</f:facet>
+                            #{result.x}
+                        </h:column>
+                        <h:column>
+                            <f:facet name="header">Y</f:facet>
+                            #{result.y}
+                        </h:column>
+                        <h:column>
+                            <f:facet name="header">R</f:facet>
+                            #{result.r}
+                        </h:column>
+                        <h:column>
+                            <f:facet name="header">Попадание</f:facet>
+                            <span class="#{result.hit ? 'hit' : 'miss'}"
+                                  data-hit="#{result.hit}">
+                                #{result.hitText}
+                            </span>
+                        </h:column>
+                    </h:dataTable>
+
+                <!-- Сообщение если нет результатов -->
+                    <h:outputText value="Нет сохраненных результатов"
+                                  rendered="#{empty resultsBean.results}"
+                                  style="display: block; text-align: center; color: #777; margin: 20px 0;"/>
                 </div>
+            </h:panelGroup>
+
+        <!-- Кнопка очистки в отдельной форме -->
+            <div style="text-align: center; margin-top: 15px;">
+                <h:commandButton value="Очистить историю"
+                                 action="#{resultsBean.clearResults()}"
+                                 styleClass="clear-btn">
+                    <f:ajax execute="@this"
+                            render="resultsPanel graphContainer"
+                            onevent="handleClearAjax"/>
+                </h:commandButton>
             </div>
         </h:form>
 
-        <div class="graph">
-            <div id="graphContainer"></div>
-        </div>
-
-        <div class="results-section" id="results-container">
-            <h3>История проверок</h3>
-
-            <h:dataTable value="#{resultsBean.results}" var="result"
-                         styleClass="results-table"
-                         rendered="#{not empty resultsBean.results}">
-
-                <h:column>
-                    <f:facet name="header">X</f:facet>
-                    <span class="result-data" data-type="x">#{result.x}</span>
-                </h:column>
-
-                <h:column>
-                    <f:facet name="header">Y</f:facet>
-                    <span class="result-data" data-type="y">#{result.y}</span>
-                </h:column>
-
-                <h:column>
-                    <f:facet name="header">R</f:facet>
-                    <span class="result-data" data-type="r">#{result.r}</span>
-                </h:column>
-
-                <h:column>
-                    <f:facet name="header">Попадание</f:facet>
-                    <span class="result-data #{result.hit ? 'hit' : 'miss'}"
-                          data-type="hit" data-hit="#{result.hit}">
-                #{result.hit ? 'Попала' : 'Не попала'}
-            </span>
-                </h:column>
-
-                <h:column>
-                    <f:facet name="header">Время проверки</f:facet>
-                    <span class="result-data" data-type="time">
-                #{result.checkTime}
-            </span>
-                </h:column>
-
-            </h:dataTable>
-
-            <h:outputText value="Нет результатов"
-                          rendered="#{empty resultsBean.results}"
-                          style="color: gray; font-style: italic;"/>
-
-            <div style="text-align: center; margin-top: 15px;">
-                <h:commandButton value="Очистить историю"
-                                 styleClass="clear-btn">
-                    <f:ajax execute="@this"
-                            render="results-container"
-                            listener="#{resultsBean.clearResults()}"
-                            onevent="function(data) {
-                        if(data.status == 'success') {
-                            console.log('История очищена, удаляю точки с графика...');
-                            clearAllGraphPoints();
-                        }
-                    }"
-                            onclick="if(!confirm('Вы уверены, что хотите очистить всю историю проверок?')) {
-                        return false;
-                    }"/>
-                </h:commandButton>
-            </div>
-        </div>
-
-        <div class="text-center mt-20">
-            <h:link outcome="index" value="Вернуться на главную" styleClass="nav-link"/>
-        </div>
-
-        <div id="loadingIndicator" class="loading-overlay">
-            <div class="loading-message">Проверка точки...</div>
-        </div>
     </div>
 
-    <h:outputScript name="js/graph-renderer.js"/>
-    <h:outputScript name="js/validation.js"/>
-    <h:outputScript name="js/graph-interaction.js"/>
+    <!-- Инициализация после загрузки - УПРОЩЕННЫЙ ВАРИАНТ -->
+    <script>
+        // Запуск инициализации
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Страница загружена (AJAX режим)');
+
+            // Инициализируем AJAX систему
+            if (typeof initializeAjaxSystem === 'function') {
+                initializeAjaxSystem();
+            }
+
+            // Инициализируем страницу
+            if (typeof initializePage === 'function') {
+                initializePage();
+            } else {
+                console.error('initializePage не найдена!');
+                // Создаем график вручную
+                setTimeout(function() {
+                    if (typeof createGraph === 'function') {
+                        createGraph();
+                        // Инициализируем валидацию
+                        if (typeof initializeFormValidation === 'function') {
+                            initializeFormValidation();
+                        }
+                        // Загружаем историю
+                        setTimeout(function() {
+                            if (typeof displayHistoryPoints === 'function') {
+                                displayHistoryPoints();
+                            }
+                        }, 500);
+                    }
+                }, 100);
+            }
+        });
+    </script>
 </h:body>
 </html>
