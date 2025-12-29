@@ -1,54 +1,100 @@
 function createGraph() {
     console.log('Создаю график...');
+
     const container = document.getElementById('graphContainer');
     if (!container) {
         console.error('graphContainer не найден!');
         return;
     }
 
+    // Очищаем контейнер
     container.innerHTML = '';
 
+    // Создаем SVG элемент
     const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
     svg.setAttribute('width', '400');
     svg.setAttribute('height', '400');
     svg.setAttribute('id', 'areaGraph');
-    svg.style.cursor = 'crosshair';
-    svg.style.border = '2px solid #ddd';
-    svg.style.borderRadius = '8px';
-    svg.style.background = '#f9f9f9';
+    svg.style.cssText = `
+        cursor: crosshair;
+        border: 2px solid #ddd;
+        border-radius: 8px;
+        background: #f9f9f9;
+        display: block;
+    `;
 
-    // Оси
+    createAxes(svg);
+
+    createArrows(svg);
+
+    createAxisLabels(svg);
+
+    createValueLabels(svg);
+
+    createShapes(svg);
+
+    container.appendChild(svg);
+
+    console.log('График создан');
+    return svg;
+}
+
+
+function createAxes(svg) {
+    // Ось X
     const xAxis = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-    xAxis.setAttribute('x1', '0'); xAxis.setAttribute('y1', '200');
-    xAxis.setAttribute('x2', '400'); xAxis.setAttribute('y2', '200');
-    xAxis.setAttribute('stroke', 'black'); xAxis.setAttribute('stroke-width', '2');
+    xAxis.setAttribute('x1', '0');
+    xAxis.setAttribute('y1', '200');
+    xAxis.setAttribute('x2', '400');
+    xAxis.setAttribute('y2', '200');
+    xAxis.setAttribute('stroke', 'black');
+    xAxis.setAttribute('stroke-width', '2');
     svg.appendChild(xAxis);
 
+    // Ось Y
     const yAxis = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-    yAxis.setAttribute('x1', '200'); yAxis.setAttribute('y1', '0');
-    yAxis.setAttribute('x2', '200'); yAxis.setAttribute('y2', '400');
-    yAxis.setAttribute('stroke', 'black'); yAxis.setAttribute('stroke-width', '2');
+    yAxis.setAttribute('x1', '200');
+    yAxis.setAttribute('y1', '0');
+    yAxis.setAttribute('x2', '200');
+    yAxis.setAttribute('y2', '400');
+    yAxis.setAttribute('stroke', 'black');
+    yAxis.setAttribute('stroke-width', '2');
     svg.appendChild(yAxis);
+}
 
-    // Стрелки
+function createArrows(svg) {
+    // Стрелка оси X
     const xArrow = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
     xArrow.setAttribute('points', '395,200 385,195 385,205');
-    xArrow.setAttribute('fill', 'black'); svg.appendChild(xArrow);
+    xArrow.setAttribute('fill', 'black');
+    svg.appendChild(xArrow);
 
+    // Стрелка оси Y
     const yArrow = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
     yArrow.setAttribute('points', '200,5 195,15 205,15');
-    yArrow.setAttribute('fill', 'black'); svg.appendChild(yArrow);
+    yArrow.setAttribute('fill', 'black');
+    svg.appendChild(yArrow);
+}
 
-    // Подписи осей
+function createAxisLabels(svg) {
+    // Подпись оси X
     const xLabel = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-    xLabel.textContent = 'X'; xLabel.setAttribute('x', '390'); xLabel.setAttribute('y', '190');
-    xLabel.setAttribute('style', 'font: 14px Arial; fill: black;'); svg.appendChild(xLabel);
+    xLabel.textContent = 'X';
+    xLabel.setAttribute('x', '390');
+    xLabel.setAttribute('y', '190');
+    xLabel.setAttribute('style', 'font: 14px Arial; fill: black;');
+    svg.appendChild(xLabel);
 
+    // Подпись оси Y
     const yLabel = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-    yLabel.textContent = 'Y'; yLabel.setAttribute('x', '210'); yLabel.setAttribute('y', '15');
-    yLabel.setAttribute('style', 'font: 14px Arial; fill: black;'); svg.appendChild(yLabel);
+    yLabel.textContent = 'Y';
+    yLabel.setAttribute('x', '210');
+    yLabel.setAttribute('y', '15');
+    yLabel.setAttribute('style', 'font: 14px Arial; fill: black;');
+    svg.appendChild(yLabel);
+}
 
-    // Подписи значений
+function createValueLabels(svg) {
     const labels = [
         {id: 'labelMinusR', x: 100, y: 215, text: '-R', anchor: 'middle'},
         {id: 'labelR', x: 300, y: 215, text: 'R', anchor: 'middle'},
@@ -70,8 +116,9 @@ function createGraph() {
         if (label.id) textEl.id = label.id;
         svg.appendChild(textEl);
     });
+}
 
-    // Фигуры (области)
+function createShapes(svg) {
     // 1. Четверть круга (левый верхний квадрант)
     const quarterCircle = document.createElementNS('http://www.w3.org/2000/svg', 'path');
     quarterCircle.setAttribute('d', 'M200,150 A50,50 0 0,0 150,200 L200,200 Z');
@@ -101,127 +148,116 @@ function createGraph() {
     triangle.setAttribute('stroke', '#2980b9');
     triangle.setAttribute('stroke-width', '1.5');
     svg.appendChild(triangle);
-
-    container.appendChild(svg);
-    console.log('График создан');
 }
 
-document.addEventListener('DOMContentLoaded', function() {
+
+function addPointToGraph(x, y, r, type, hit) {
+    const svg = document.getElementById('areaGraph');
+    if (!svg) {
+        console.error('График не найден для добавления точки');
+        return;
+    }
+
+    const scale = 100 / r;
+    const svgX = 200 + (x * scale);
+    const svgY = 200 - (y * scale);
+
+    const point = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    point.setAttribute('cx', svgX);
+    point.setAttribute('cy', svgY);
+    point.setAttribute('r', '4');
+    point.setAttribute('data-x', x);
+    point.setAttribute('data-y', y);
+    point.setAttribute('data-r', r);
+    point.setAttribute('data-type', type);
+    point.setAttribute('data-hit', hit);
+
+    // Устанавливаем классы для CSS стилизации
+    if (type === 'temp') {
+        point.setAttribute('class', 'temp-point');
+    } else if (type === 'result') {
+        point.setAttribute('class', hit ? 'result-point hit-point' : 'result-point miss-point');
+    }
+
+    svg.appendChild(point);
+    console.log('Добавлена ${type} точка: (${x.toFixed(2)}, ${y.toFixed(2)}), попадание=${hit}, классы=${point.getAttribute('class')}');
+    return point;
+}
+
+function clearTempPoints() {
+    const svg = document.getElementById('areaGraph');
+    if (svg) {
+        const tempPoints = svg.querySelectorAll('.temp-point');
+        tempPoints.forEach(point => point.remove());
+        console.log('Удалено ${tempPoints.length} временных точек');
+    }
+}
+
+function clearResultPoints() {
+    const svg = document.getElementById('areaGraph');
+    if (svg) {
+        const resultPoints = svg.querySelectorAll('.result-point');
+        resultPoints.forEach(point => point.remove());
+        console.log('Удалено ${resultPoints.length} точек-результатов');
+    }
+}
+
+function clearAllGraphPoints() {
+    const svg = document.getElementById('areaGraph');
+    if (svg) {
+        const allPoints = svg.querySelectorAll('circle');
+        allPoints.forEach(point => point.remove());
+        console.log('Удалено ${allPoints.length} всех точек');
+    }
+}
+
+function updateRLabels() {
     const rInput = document.getElementById('r');
-    if (rInput) {
-        rInput.addEventListener('input', function() {
-            // Обновляем подписи на графике
-            if (typeof updateRLabels === 'function') {
-                updateRLabels();
-            }
-            // Запускаем валидацию R
-            if (typeof validateRField === 'function') {
-                validateRField();
-            }
-        });
-    }
-});
+    if (!rInput || !rInput.value) return;
 
+    const r = parseFloat(rInput.value.replace(',', '.'));
+    if (isNaN(r) || r <= 0) return;
 
-// Добавь эту функцию в конец файла для инициализации с AJAX
-function initializePageForAjax() {
-    console.log('Инициализация страницы для AJAX');
-    
-    // Создай график
-    createGraph();
-    
-    // Инициализируй валидацию
-    initializeFormValidation();
-    
-    // Подпишись на клик
-    const svg = document.getElementById('areaGraph');
-    if (svg) {
-        svg.addEventListener('click', onSvgClick);
+    const labels = {
+        'labelMinusR': `-${r}`,
+        'labelR': `${r}`,
+        'labelTopR': `${r}`,
+        'labelBottomMinusR': `-${r}`,
+        'labelMinusR2': `-${(r/2).toFixed(1)}`,
+        'labelR2': `${(r/2).toFixed(1)}`,
+        'labelTopR2': `${(r/2).toFixed(1)}`,
+        'labelBottomMinusR2': `-${(r/2).toFixed(1)}`
+    };
+
+    for (const [id, text] of Object.entries(labels)) {
+        const label = document.getElementById(id);
+        if (label) {
+            label.textContent = text;
+        }
     }
-    
-    // Загрузи историю
-    setTimeout(() => {
-        displayHistoryPoints();
-        updateRLabels(); // Обновляем подписи при загрузке
-    }, 800);
+
+    console.log('Обновлены подписи для R=${r}');
 }
 
-// Замени старую initializePage на эту
-window.initializePage = initializePageForAjax;
 
-// Функция для проверки и перерисовки графика после AJAX
-function refreshGraphAfterAjax() {
-    console.log('Перерисовка графика после AJAX...');
-
-    // Проверяем, существует ли график
-    if (!document.getElementById('areaGraph')) {
-        console.log('График не найден, создаю заново...');
-        createGraph();
-
-        // Добавляем обработчик клика
-        const svg = document.getElementById('areaGraph');
-        if (svg && typeof onSvgClick === 'function') {
-            svg.addEventListener('click', onSvgClick);
-        }
-    }
-
-    // Загружаем историю точек с задержкой
-    setTimeout(function() {
-        if (typeof displayHistoryPoints === 'function') {
-            displayHistoryPoints();
-        }
-    }, 500);
-}
-
-// Обновляем initializePage для работы с AJAX
-function initializePage() {
-    console.log('Инициализация страницы (AJAX-совместимая)');
-
-    // Создай график если его нет
-    if (!document.getElementById('areaGraph')) {
-        createGraph();
-    } else {
-        console.log('График уже существует');
-    }
-
-    // Инициализируй валидацию
-    if (typeof initializeFormValidation === 'function') {
-        initializeFormValidation();
-    }
-
-    // Подпишись на клик по графику
-    const svg = document.getElementById('areaGraph');
-    if (svg) {
-        if (typeof onSvgClick === 'function') {
-            svg.addEventListener('click', onSvgClick);
-        }
-    } else {
-        console.error('График не найден для установки обработчика');
-        // Пробуем снова через 500мс
-        setTimeout(function() {
-            const svg = document.getElementById('areaGraph');
-            if (svg && typeof onSvgClick === 'function') {
-                svg.addEventListener('click', onSvgClick);
-            }
-        }, 500);
-    }
-
-    // Загрузи историю с задержкой чтобы таблица успела отрисоваться
-    setTimeout(function() {
-        console.log('Начинаю загрузку истории...');
-        if (typeof displayHistoryPoints === 'function') {
-            displayHistoryPoints();
-        } else {
-            console.error('displayHistoryPoints не найдена!');
-        }
-    }, 800);
-}
-
-// В graph-renderer.js добавьте:
 function displayHistoryPoints() {
     console.log('Загрузка истории точек...');
 
-    // Очищаем только точки-результаты
+    // Убеждаемся, что график существует
+    ensureGraphExists();
+
+    // Даем время на создание графика если нужно
+    setTimeout(loadPointsFromTable, 100);
+}
+
+function loadPointsFromTable() {
+    const svg = document.getElementById('areaGraph');
+    if (!svg) {
+        console.error('График не найден для загрузки точек');
+        return;
+    }
+
+    // Очищаем старые точки-результаты
     clearResultPoints();
 
     const table = document.querySelector('.results-table');
@@ -231,8 +267,9 @@ function displayHistoryPoints() {
     }
 
     const rows = table.querySelectorAll('tbody tr');
-    console.log(`Найдено ${rows.length} строк в таблице`);
+    console.log('Найдено ${rows.length} строк в таблице');
 
+    let loadedCount = 0;
     rows.forEach((row, index) => {
         try {
             const cells = row.querySelectorAll('td');
@@ -243,54 +280,99 @@ function displayHistoryPoints() {
                 const hitCell = cells[3];
 
                 // Получаем значение попадания
-                const span = hitCell.querySelector('span');
                 let hit = false;
+                const span = hitCell.querySelector('span');
 
                 if (span && span.hasAttribute('data-hit')) {
                     hit = span.getAttribute('data-hit') === 'true';
-                } else {
-                    const spanClass = span ? span.className : hitCell.className;
+                } else if (span) {
+                    const spanClass = span.className;
                     hit = spanClass.includes('hit');
                 }
 
-                console.log(`Точка ${index+1}: x=${x}, y=${y}, r=${r}, hit=${hit}`);
-
                 if (!isNaN(x) && !isNaN(y) && !isNaN(r)) {
                     addPointToGraph(x, y, r, 'result', hit);
+                    loadedCount++;
                 }
             }
         } catch (e) {
-            console.error(`Ошибка точки ${index+1}:`, e);
+            console.error('Ошибка загрузки точки ${index+1}:', e);
         }
     });
+
+    console.log('Загружено ${loadedCount} точек из истории');
 }
 
-function clearResultPoints() {
+function ensureGraphExists() {
     const svg = document.getElementById('areaGraph');
-    if (svg) {
-        svg.querySelectorAll('.result-point').forEach(point => point.remove());
+    if (!svg) {
+        console.log('График не найден, создаю...');
+        createGraph();
+        return false; // график только что создан
     }
+    return true; // график уже существует
 }
 
-function clearAllGraphPoints() {
-    const svg = document.getElementById('areaGraph');
-    if (svg) {
-        svg.querySelectorAll('circle').forEach(point => point.remove());
-    }
+function initializePage() {
+    console.log('Инициализация графики...');
+
+    // 1. Гарантируем, что график существует
+    ensureGraphExists();
+
+    // 2. Обновляем подписи
+    updateRLabels();
+
+    // 3. Загружаем историю точек с небольшой задержкой
+    setTimeout(() => {
+        if (typeof displayHistoryPoints === 'function') {
+            displayHistoryPoints();
+        }
+    }, 300);
+
+    console.log('Графика инициализирована');
 }
 
-// Экспортируйте эти функции
+function refreshGraphAfterAjax() {
+    console.log('Обновление графика после AJAX...');
+
+    // Убеждаемся, что график существует
+    ensureGraphExists();
+
+    // Обновляем подписи
+    updateRLabels();
+
+    // Загружаем историю точек с задержкой
+    setTimeout(() => {
+        if (typeof displayHistoryPoints === 'function') {
+            displayHistoryPoints();
+        }
+    }, 400);
+}
+
 if (typeof window !== 'undefined') {
-    window.displayHistoryPoints = displayHistoryPoints;
-    window.clearResultPoints = clearResultPoints;
-    window.clearAllGraphPoints = clearAllGraphPoints;
-}
-
-// Экспорт функций
-if (typeof window !== 'undefined') {
+    window.createGraph = createGraph;
     window.initializePage = initializePage;
     window.refreshGraphAfterAjax = refreshGraphAfterAjax;
-    window.createGraph = createGraph;
     window.displayHistoryPoints = displayHistoryPoints;
+    window.addPointToGraph = addPointToGraph;
+    window.clearTempPoints = clearTempPoints;
+    window.clearResultPoints = clearResultPoints;
     window.clearAllGraphPoints = clearAllGraphPoints;
+    window.updateRLabels = updateRLabels;
 }
+
+(function() {
+    console.log('graph-renderer.js загружен');
+
+    // Автоматически создаем график при загрузке страницы
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM загружен, создаю график...');
+            setTimeout(ensureGraphExists, 100);
+        });
+    } else {
+        // DOM уже загружен
+        console.log('DOM уже загружен, создаю график...');
+        setTimeout(ensureGraphExists, 100);
+    }
+})();

@@ -12,8 +12,8 @@
     <h:outputStylesheet library="css" name="main.css"/>
 
     <h:outputScript library="js" name="graph-renderer.js"/>
-    <h:outputScript library="js" name="validation.js"/>
     <h:outputScript library="js" name="graph-interaction.js"/>
+    <h:outputScript library="js" name="validation.js"/>
     <h:outputScript library="js" name="ajax-handler.js"/>
 </h:head>
 
@@ -51,7 +51,7 @@
                                  onclick="return validateFormBeforeSubmit();"
                                  action="#{areaCheck.checkPoint}"
                                  styleClass="submit-btn">
-                >
+
                     <f:ajax execute="@form"
                             render=":resultsPanel :graphContainer :clearForm:clearBtn"
                             onevent="handleAjaxEvent"/>
@@ -64,7 +64,7 @@
                 <div id="graphContainer"></div>
             </div>
 
-        <!-- Таблица результатов - ОБЕРНИТЕ В h:panelGroup -->
+        <!-- Таблица результатов -->
             <h:panelGroup id="resultsPanel">
                 <div class="results-section">
                     <h3>История проверок</h3>
@@ -91,6 +91,14 @@
                                 #{result.hitText}
                             </span>
                         </h:column>
+                        <h:column>
+                            <f:facet name="header">Время запроса</f:facet>
+                            #{result.formattedCheckTime}
+                        </h:column>
+                        <h:column>
+                            <f:facet name="header">Время выполнения</f:facet>
+                            #{result.formattedExecutionTime}
+                        </h:column>
                     </h:dataTable>
 
                 <!-- Сообщение если нет результатов -->
@@ -112,9 +120,22 @@
             </div>
         </h:form>
 
+        <h:form id="graphForm" prependId="false" style="display: none;">
+            <h:inputHidden id="graphX" value="#{areaCheck.x}" />
+            <h:inputHidden id="graphY" value="#{areaCheck.y}" />
+            <h:inputHidden id="graphR" value="#{areaCheck.r}" />
+
+            <h:commandButton id="graphSubmitBtn"
+                             value="Проверить"
+                             action="#{areaCheck.checkPoint}">
+                <f:ajax execute="@form"
+                        render=":resultsPanel :graphContainer"
+                        onevent="handleGraphAjax"/>
+            </h:commandButton>
+        </h:form>
+
     </div>
 
-    <!-- Инициализация после загрузки - УПРОЩЕННЫЙ ВАРИАНТ -->
     <script>
         // Запуск инициализации
         document.addEventListener('DOMContentLoaded', function() {
@@ -149,5 +170,6 @@
             }
         });
     </script>
+
 </h:body>
 </html>

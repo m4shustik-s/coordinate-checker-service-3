@@ -8,7 +8,7 @@ import jakarta.inject.Named;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.PersistenceContextType;
-import jakarta.transaction.Transactional;  // ПРАВИЛЬНЫЙ ИМПОРТ!
+import jakarta.transaction.Transactional;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
@@ -28,9 +28,10 @@ public class ResultsBean implements Serializable {
         loadResults();
     }
 
-    @Transactional  // Теперь должно работать!
+    @Transactional
     public void addResult(Result result) {
         System.out.println("ResultsBean: Сохранение результата: " + result);
+        System.out.println("Время выполнения: " + result.getFormattedExecutionTime());
 
         try {
             entityManager.persist(result);
@@ -55,7 +56,7 @@ public class ResultsBean implements Serializable {
         }
     }
 
-    @Transactional  // И здесь тоже!
+    @Transactional
     public void clearResults() {
         System.out.println("ResultsBean: Очистка всех результатов...");
 

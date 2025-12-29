@@ -1,42 +1,30 @@
-// ajax-handler.js
-// Обработка AJAX запросов и ответов
-
-// Обработчики AJAX событий для основной формы
 function handleAjaxEvent(data) {
     console.log('AJAX событие:', data.status);
 
     switch (data.status) {
         case "begin":
-            // Начало AJAX запроса
             handleAjaxBegin(data);
             break;
 
         case "complete":
-            // Завершение AJAX запроса
             handleAjaxComplete(data);
             break;
 
         case "success":
-            // Успешное выполнение
             handleAjaxSuccess(data);
             break;
 
         case "error":
-            // Ошибка выполнения
             handleAjaxError(data);
             break;
     }
 }
 
-// Обработчик начала AJAX запроса
 function handleAjaxBegin(data) {
     console.log('Начало AJAX запроса');
 
     // Устанавливаем флаг выполнения
     window.ajaxInProgress = true;
-
-    // Показываем индикатор загрузки
-    showLoadingIndicator();
 
     // Блокируем форму
     disableForm(true);
@@ -47,7 +35,6 @@ function handleAjaxBegin(data) {
     }
 }
 
-// Обработчик завершения AJAX запроса
 function handleAjaxComplete(data) {
     console.log('Завершение AJAX запроса');
 
@@ -57,31 +44,23 @@ function handleAjaxComplete(data) {
     }, 300);
 }
 
-// Обработчик успешного AJAX запроса
 function handleAjaxSuccess(data) {
     console.log('AJAX запрос успешно выполнен');
 
     // Сбрасываем флаг выполнения
     window.ajaxInProgress = false;
 
-    // Скрываем индикатор загрузки
-    setTimeout(() => {
-        hideLoadingIndicator();
-    }, 300);
-
-    // Обновляем точки на графике
     setTimeout(() => {
         if (typeof displayHistoryPoints === 'function') {
             displayHistoryPoints();
         }
 
-        // Обновляем подписи R
         if (typeof updateRLabels === 'function') {
             updateRLabels();
         }
     }, 500);
 
-    // Показываем уведомление об успехе (опционально)
+    // Показываем уведомление об успехе
      const x = document.getElementById('x');
         const y = document.getElementById('y');
         const r = document.getElementById('r');
@@ -93,15 +72,11 @@ function handleAjaxSuccess(data) {
         }
 }
 
-// Обработчик ошибки AJAX запроса
 function handleAjaxError(data) {
     console.error('Ошибка AJAX запроса:', data);
 
     // Сбрасываем флаг выполнения
     window.ajaxInProgress = false;
-
-    // Скрываем индикатор загрузки
-    hideLoadingIndicator();
 
     // Разблокируем форму
     disableForm(false);
@@ -116,7 +91,6 @@ function handleAjaxError(data) {
                 errorMessage = response.error;
             }
         } catch (e) {
-            // Не JSON ответ, используем текст как есть
             if (data.responseText.includes('error') || data.responseText.includes('Error')) {
                 errorMessage = data.responseText.substring(0, 200);
             }
@@ -126,7 +100,6 @@ function handleAjaxError(data) {
     showErrorNotification(errorMessage);
 }
 
-// Обработчик AJAX для кнопки очистки
 function handleClearAjax(data) {
     console.log('AJAX для очистки:', data.status);
 
@@ -166,39 +139,6 @@ function handleClearAjax(data) {
     return true;
 }
 
-// Функции управления индикатором загрузки
-function showLoadingIndicator() {
-    const indicator = document.getElementById('loadingIndicator');
-    if (indicator) {
-        indicator.style.display = 'flex';
-        indicator.style.opacity = '1';
-        document.body.style.cursor = 'wait';
-
-        // Анимация появления
-        setTimeout(() => {
-            indicator.style.opacity = '1';
-        }, 10);
-
-        console.log('Индикатор загрузки показан');
-    } else {
-        console.warn('Элемент индикатора загрузки не найден');
-    }
-}
-
-function hideLoadingIndicator() {
-    const indicator = document.getElementById('loadingIndicator');
-    if (indicator) {
-        // Анимация исчезновения
-        indicator.style.opacity = '0';
-
-        setTimeout(() => {
-            indicator.style.display = 'none';
-            document.body.style.cursor = 'default';
-        }, 300);
-
-        console.log('Индикатор загрузки скрыт');
-    }
-}
 
 // Управление состоянием формы
 function disableForm(disabled) {
@@ -344,86 +284,77 @@ function initializeAjaxSystem() {
     console.log('AJAX система инициализирована');
 }
 
-// Добавление стилей для уведомлений
-function addNotificationStyles() {
-    if (!document.getElementById('notification-styles')) {
-        const style = document.createElement('style');
-        style.id = 'notification-styles';
-        style.textContent = `
-            .notification {
-                font-family: Arial, sans-serif;
-                font-size: 14px;
-            }
 
-            .notification.success {
-                background: #27ae60;
-                border-left: 4px solid #219653;
-            }
+// Обработчик AJAX для hidden формы графика
+function handleGraphAjax(data) {
+    console.log('График AJAX:', data.status);
 
-            .notification.error {
-                background: #e74c3c;
-                border-left: 4px solid #c0392b;
-            }
-
-            .disabled {
-                opacity: 0.6;
-                cursor: not-allowed !important;
-            }
-
-            .loading-overlay {
-                position: fixed;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                background: rgba(255, 255, 255, 0.9);
-                display: none;
-                justify-content: center;
-                align-items: center;
-                z-index: 9999;
-                flex-direction: column;
-            }
-
-            .loading-message {
-                margin-top: 20px;
-                font-size: 18px;
-                color: #333;
-                font-family: Arial, sans-serif;
-            }
-
-            @keyframes spin {
-                0% { transform: rotate(0deg); }
-                100% { transform: rotate(360deg); }
-            }
-
-            .loading-spinner {
-                width: 50px;
-                height: 50px;
-                border: 5px solid #f3f3f3;
-                border-top: 5px solid #3498db;
-                border-radius: 50%;
-                animation: spin 1s linear infinite;
-            }
-        `;
-        document.head.appendChild(style);
-
-        // Обновляем индикатор загрузки, если он есть
-        const indicator = document.getElementById('loadingIndicator');
-        if (indicator && !indicator.querySelector('.loading-spinner')) {
-            indicator.innerHTML = `
-                <div class="loading-spinner"></div>
-                <div class="loading-message">Проверка точки...</div>
-            `;
-        }
-
-        console.log('Стили уведомлений добавлены');
+    switch (data.status) {
+        case "begin":
+            handleGraphAjaxBegin(data);
+            break;
+        case "complete":
+            handleGraphAjaxComplete(data);
+            break;
+        case "success":
+            handleGraphAjaxSuccess(data);
+            break;
+        case "error":
+            handleGraphAjaxError(data);
+            break;
     }
 }
 
-// Экспорт функций
+function handleGraphAjaxBegin(data) {
+    console.log('Начало AJAX из графика');
+    window.ajaxInProgress = true;
+    showLoadingIndicator();
+
+}
+
+function handleGraphAjaxSuccess(data) {
+    console.log('Успешный AJAX из графика');
+    window.ajaxInProgress = false;
+
+    setTimeout(() => {
+        hideLoadingIndicator();
+        showSuccessNotification('Точка успешно проверена!');
+
+        // Обновляем график и таблицу
+        if (typeof displayHistoryPoints === 'function') {
+            displayHistoryPoints();
+        }
+        if (typeof updateRLabels === 'function') {
+            updateRLabels();
+        }
+
+        // Очищаем временную точку
+        if (typeof clearTempPoints === 'function') {
+            clearTempPoints();
+        }
+    }, 300);
+}
+
+function handleGraphAjaxError(data) {
+    console.error('Ошибка AJAX из графика');
+    window.ajaxInProgress = false;
+    hideLoadingIndicator();
+    showErrorNotification('Ошибка при проверке точки');
+
+    // Очищаем временную точку при ошибке
+    if (typeof clearTempPoints === 'function') {
+        clearTempPoints();
+    }
+}
+
+function handleGraphAjaxComplete(data) {
+    console.log('Завершение AJAX из графика');
+}
+
 if (typeof window !== 'undefined') {
     window.handleAjaxEvent = handleAjaxEvent;
     window.handleClearAjax = handleClearAjax;
+    window.handleGraphAjax = handleGraphAjax;
     window.showLoadingIndicator = showLoadingIndicator;
     window.hideLoadingIndicator = hideLoadingIndicator;
     window.disableForm = disableForm;

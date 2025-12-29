@@ -45,7 +45,7 @@ function validateYField() {
         yField.classList.add('invalid');
         return false;
     }
-    if (num >= -3 && num <= 5) {
+    if (num > -3 && num < 5) {
         yField.classList.add('valid');
         return true;
     } else {
@@ -71,7 +71,7 @@ function validateRField() {
         rField.classList.add('invalid');
         return false;
     }
-    if (num >= 1 && num <= 4) {
+    if (num > 1 && num < 4) {
         rField.classList.add('valid');
         return true;
     } else {
@@ -145,7 +145,6 @@ function validateForm() {
 function validateFormBeforeSubmit() {
     console.log('Проверка перед отправкой (AJAX)');
 
-    // Сначала выполняем валидацию отдельных полей для визуальной обратной связи
     validateYField();
     validateRField();
 
@@ -157,11 +156,11 @@ function validateFormBeforeSubmit() {
     return true;
 }
 
-// Функция для принудительного обновления после AJAX
+
 function refreshAfterAjax() {
     console.log('Обновление после AJAX...');
 
-    // Обновляем валидацию
+
     validateYField();
     validateRField();
 
@@ -174,7 +173,6 @@ function refreshAfterAjax() {
     }, 300);
 }
 
-// Экспорт функции
 if (typeof window !== 'undefined') {
     window.refreshAfterAjax = refreshAfterAjax;
 }

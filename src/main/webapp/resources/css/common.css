@@ -54,37 +54,3 @@ body {
     box-shadow: 0 4px 8px rgba(0, 123, 255, 0.3);
 }
 
-/* Индикатор загрузки */
-.loading-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.5);
-    display: none;
-    justify-content: center;
-    align-items: center;
-    z-index: 1000;
-}
-
-.loading-message {
-    background: rgba(0, 0, 0, 0.8);
-    color: white;
-    padding: 20px 30px;
-    border-radius: 8px;
-    font-size: 16px;
-}
-
-/* Утилитарные классы */
-.hidden {
-    display: none !important;
-}
-
-.text-center {
-    text-align: center;
-}
-
-.mt-20 {
-    margin-top: 20px;
-}

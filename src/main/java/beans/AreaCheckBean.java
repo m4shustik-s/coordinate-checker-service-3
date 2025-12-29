@@ -5,6 +5,8 @@ import jakarta.enterprise.context.SessionScoped;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import java.io.Serializable;
+import java.time.Duration;
+import java.time.Instant;
 
 @Named("areaCheck")
 @SessionScoped
@@ -20,8 +22,17 @@ public class AreaCheckBean implements Serializable {
         System.out.println("=== AreaCheckBean: Проверка точки ===");
         System.out.println("Параметры: x=" + x + ", y=" + y + ", r=" + r);
 
+        // Засекаем время выполнения
+        Instant start = Instant.now();
+
         boolean hit = checkHit(x, y, r);
-        Result result = new Result(x, y, r, hit);
+
+        Instant end = Instant.now();
+        long executionTime = Duration.between(start, end).toNanos(); // в наносекундах
+
+        System.out.println("Время выполнения: " + executionTime + " наносекунд");
+
+        Result result = new Result(x, y, r, hit, executionTime);
 
         if (resultsBean != null) {
             resultsBean.addResult(result);
@@ -30,7 +41,6 @@ public class AreaCheckBean implements Serializable {
         }
     }
 
-    // Метод checkHit() остается без изменений
     private boolean checkHit(double x, double y, double r) {
         boolean inQuarterCircle = (x <= 0 && y >= 0) && (x * x + y * y <= (r/2) * (r/2));
         boolean inSquare = (x >= 0 && x <= r) && (y >= 0 && y <= r);

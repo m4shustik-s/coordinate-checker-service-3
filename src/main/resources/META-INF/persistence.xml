@@ -11,19 +11,15 @@
         <class>entities.Result</class>
 
         <properties>
-            <!-- Schema generation -->
             <property name="eclipselink.ddl-generation" value="create-or-extend-tables"/>
             <property name="eclipselink.ddl-generation.output-mode" value="database"/>
 
-            <!-- Logging (false = no SQL logging) -->
             <property name="eclipselink.logging.level" value="OFF"/>
             <property name="eclipselink.logging.parameters" value="false"/>
 
-            <!-- JTA transaction handling -->
             <property name="eclipselink.target-server" value="JBoss"/>
             <property name="eclipselink.transaction.type" value="JTA"/>
 
-            <!-- Optional: cache settings -->
             <property name="eclipselink.cache.shared.default" value="true"/>
             <property name="eclipselink.query-results-cache" value="false"/>
         </properties>

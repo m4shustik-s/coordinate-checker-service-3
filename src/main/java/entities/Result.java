@@ -5,17 +5,6 @@ import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
-/**
- * JPA Entity класс для хранения результатов проверок.
- * Соответствует таблице "results" в базе данных PostgreSQL.
- *
- * Аннотации:
- * @Entity - отмечает класс как JPA entity
- * @Table(name = "results") - указывает имя таблицы в БД
- * @Id + @GeneratedValue - первичный ключ с автоинкрементом
- * @Column - маппинг полей на колонки таблицы
- */
-
 
 @Entity
 @Table(name = "results")
@@ -40,17 +29,22 @@ public class Result implements Serializable {
     @Column(name = "check_time", nullable = false)
     private LocalDateTime checkTime;
 
-    // Конструкторы
+    @Column(name = "execution_time_ns", nullable = false)
+    private long executionTime; // в наносекундах
+
+
     public Result() {
-        this.checkTime = LocalDateTime.now();  // или this.timestamp
+        this.checkTime = LocalDateTime.now();
+        this.executionTime = 0;
     }
 
-    public Result(double x, double y, double r, boolean hit) {
+    public Result(double x, double y, double r, boolean hit, long executionTime) {
         this.x = x;
         this.y = y;
         this.r = r;
         this.hit = hit;
-        this.checkTime = LocalDateTime.now();  // или this.timestamp
+        this.checkTime = LocalDateTime.now();
+        this.executionTime = executionTime;
     }
 
     // Геттеры и сеттеры
@@ -94,7 +88,6 @@ public class Result implements Serializable {
         this.hit = hit;
     }
 
-    // Геттер для времени - ВАЖНО: используйте либо checkTime, либо timestamp
     public LocalDateTime getCheckTime() {
         return checkTime;
     }
@@ -103,7 +96,21 @@ public class Result implements Serializable {
         this.checkTime = checkTime;
     }
 
-    // Метод для получения времени как строки (опционально)
+    public long getExecutionTime() {
+        return executionTime;
+    }
+
+    public void setExecutionTime(long executionTime) {
+        this.executionTime = executionTime;
+    }
+
+    // Метод для получения времени выполнения в мс
+    public String getFormattedExecutionTime() {
+        double ms = executionTime / 1_000_000.0;
+        return String.format("%.3f мс", ms);
+    }
+
+    // Метод для получения времени как строки
     public String getFormattedCheckTime() {
         if (checkTime != null) {
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm:ss");
@@ -117,7 +124,7 @@ public class Result implements Serializable {
         return hit ? "Попадание" : "Промах";
     }
 
-    // toString() метод
+
     @Override
     public String toString() {
         return String.format("Result{id=%d, x=%.2f, y=%.2f, r=%.2f, hit=%s, time=%s}",

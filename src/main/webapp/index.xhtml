@@ -3,10 +3,12 @@
       xmlns:h="http://xmlns.jcp.org/jsf/html"
       xmlns:f="http://xmlns.jcp.org/jsf/core">
 
-
 <h:head>
     <title>Area Checker - Start</title>
     <meta charset="UTF-8"/>
+
+    <meta http-equiv="refresh" content="8"/>
+
     <h:outputStylesheet name="css/common.css"/>
     <h:outputStylesheet name="css/index.css"/>
 </h:head>
@@ -22,19 +24,12 @@
 
         <div class="clock">
             <h3>Текущее время на сервере:</h3>
-            <h:form id="clockForm">
-                <div>
-                    <h:outputText id="time" value="#{clock.time}"/>
-                </div>
-
-                <h:commandButton id="refreshBtn" style="display: none;">
-                    <f:ajax render="time"/>
-                </h:commandButton>
-            </h:form>
+            <div style="font-size: 1.5em; font-weight: bold; color: #2c3e50;">
+                #{clock.time}
+            </div>
         </div>
 
         <h:link outcome="main" value="Перейти к проверке области" styleClass="nav-link"/>
     </div>
-
 </h:body>
 </html>
